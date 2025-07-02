@@ -1,13 +1,13 @@
 services:
-  static:
-    build:
-      context: ./static
-      dockerfile: Dockerfile
-    command:  python -m http.server 8000
-    ports:
-      - 8000:8000
-    volumes:
-      - ./static/src:/app
+  # static:
+  #   build:
+  #     context: ./static
+  #     dockerfile: Dockerfile
+  #   command:  python -m http.server 8000
+  #   ports:
+  #     - 8000:8000
+  #   volumes:
+  #     - ./static/src:/app
 
   backend:
     build:
@@ -27,7 +27,24 @@ services:
       - 8001:8000
     volumes:
       - ./backend/src:/app
+    depends_on:
+      - db_service
     env_file:
       - .env
 
+  db_service:
+    image: postgres:17.5
+    ports:
+      - 5432:5432
+    volumes:
+      - dc_managed_db_volume:/var/lib/postgres/data
+    # env_file:
+    #   - .env
+    environment:
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=db-password
+      - POSTGRES_DB=mydb
 
+
+volumes:
+  dc_managed_db_volume:
