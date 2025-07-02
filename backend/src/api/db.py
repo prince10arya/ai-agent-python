@@ -1,7 +1,7 @@
 import os
 import sqlmodel
 from sqlmodel import Session, SQLModel
-DB_URL = os.environ.get('DB_URL')
+DB_URL = os.environ.get('DATABASE_URL')
 
 if DB_URL == "":
     raise NotImplementedError("`DB_URL` needs to be set")
