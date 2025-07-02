@@ -1,5 +1,5 @@
 import os
-import asyncio
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     #* before start up
      #* Run synchronous init_db in a separate thread to avoid blocking the event loop
     print("Application startup: Initializing database...")
-    await asyncio.to_thread(init_db)
+    init_db()
     print("Application startup: Database initialized.")
     yield
     #* after shutdown
