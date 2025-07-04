@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from typing import List
 
 from .models import ChatMessagePayLoad, ChatMessage, ChatMessageListItem
 from api.db import get_session
 from api.ai.services import generate_email_message
-from api.ai.schemas import EmailMessage
+from api.ai.schemas import AgentMessageSchema
+from api.ai.agents import send_email_agent
 router = APIRouter()
 
 @router.get("/")
@@ -26,7 +27,7 @@ def chat_list_messages(session: Session = Depends(get_session)):
 
 
 
-@router.post("/", response_model=EmailMessage)
+@router.post("/", response_model=AgentMessageSchema)
 def chat_create_message(
     payload: ChatMessagePayLoad,
     session: Session = Depends(get_session)
@@ -42,6 +43,19 @@ def chat_create_message(
     #* session.refresh(obj) #* ensure id/primary key added to the obj instance
 
     #* ready to store in the database
-    response = generate_email_message(payload.message)
-
-    return response
+    #*response = generate_email_message(payload.message)
+    email = send_email_agent()
+    msg_data = {
+        "messages": [
+            {"role": "user",
+             "content": f"{payload.message}"
+             },
+        ]
+    }
+    result = email.invoke(msg_data)
+    if not result:
+        raise HTTPException(status_code=400, detail = "Error with the email_agent")
+    messages = result.get("messages")
+    if not messages:
+        raise HTTPException(status_code=400, detail = "Error with the email_agent")
+    return messages[-1]
