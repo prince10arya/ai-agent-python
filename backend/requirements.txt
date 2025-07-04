@@ -5,3 +5,4 @@ sqlmodel
 psycopg[binary]
 langchain
 langchain-openai
+langgraph
