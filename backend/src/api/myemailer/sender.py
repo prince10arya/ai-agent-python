@@ -8,7 +8,7 @@ APP_PASSWORD= os.environ.get("APP_PASSWORD")
 EMAIL_HOST=os.environ.get("EMAIL_HOST") or 'smtp.gmail.com'
 EMAIL_PORT=os.environ.get("EMAIL_PORT") or 465
 
-def send_mail(subject: str, content: str, to_email:str =EMAIL, from_email: str=EMAIL):
+def send_mail(subject: str, content: str, to_email: str, from_email: str = EMAIL):
     msg = EmailMessage()
     msg["Subject" ] = subject
     msg["From" ] = from_email

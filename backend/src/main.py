@@ -1,24 +1,39 @@
 import os
-
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.db import init_db
 from api.chat.routing import router as chat_router
-#? check this fuction if any error
+from api.email.routing import router as email_router
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    #* before start up
-     #* Run synchronous init_db in a separate thread to avoid blocking the event loop
     print("Application startup: Initializing database...")
     init_db()
     print("Application startup: Database initialized.")
     yield
-    #* after shutdown
     print("Application shutdown: Cleaning up resources (if any)...")
 
-app = FastAPI(lifespan=lifespan)
-app.include_router(chat_router, prefix='/api/chats')
-@app.get('/')
+app = FastAPI(
+    title="Email Agent API",
+    description="AI-powered email drafting and sending service",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure this properly for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(chat_router, prefix='/api/chats', tags=["Chat"])
+app.include_router(email_router, prefix='/api/emails', tags=["Email"])
+
+@app.get('/', tags=["Health"])
 def read_index():
-    return {"hello": "world"}
+    return {"message": "Email Agent API is running", "status": "healthy"}

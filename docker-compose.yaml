@@ -1,13 +1,19 @@
 services:
-  # static:
-  #   build:
-  #     context: ./static
-  #     dockerfile: Dockerfile
-  #   command:  python -m http.server 8000
-  #   ports:
-  #     - 8000:8000
-  #   volumes:
-  #     - ./static/src:/app
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_HOST=localhost
+    depends_on:
+      - backend
 
   backend:
     build:
