@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Health Check</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f1419;
+            color: #e6e8eb;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(90deg, #3ecf8e 0%, #2dd4bf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card {
+            background: #1a1f26;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #3ecf8e;
+            color: #0f1419;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #2dd4bf;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+        .status.healthy {
+            background: rgba(62, 207, 142, 0.15);
+            color: #3ecf8e;
+        }
+        .status.unhealthy {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .status.degraded {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+        pre {
+            background: #0a0e13;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid #1f2937;
+            color: #9ca3af;
+        }
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            padding: 20px;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            margin-top: 10px;
+        }
+        .component {
+            background: #0f1419;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #2d3748;
+        }
+        .component-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .component-message {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 API Health Check Dashboard</h1>
+        
+        <div class="card">
+            <h2>Quick Tests</h2>
+            <button class="btn" onclick="checkBasicHealth()">Check Basic Health</button>
+            <button class="btn" onclick="checkDetailedHealth()">Check Detailed Health</button>
+            <button class="btn" onclick="checkRootEndpoint()">Check Root Endpoint</button>
+        </div>
+
+        <div class="card" id="results" style="display: none;">
+            <h2>Results <span id="statusBadge"></span></h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001';
+
+        async function checkBasicHealth() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/health/`);
+                const data = await response.json();
+                displayResult(data, 'Basic Health Check');
+            } catch (error) {
+                displayError(error.message);
+            }
+        }
+
+        async function checkDetailedHealth() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/health/detailed`);
+                const data = await response.json();
+                displayDetailedResult(data);
+            } catch (error) {
+                displayError(error.message);
+            }
+        }
+
+        async function checkRootEndpoint() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                displayResult(data, 'Root Endpoint');
+            } catch (error) {
+                displayError(error.message);
+            }
+        }
+
+        function showLoading() {
+            const results = document.getElementById('results');
+            const content = document.getElementById('resultContent');
+            results.style.display = 'block';
+            content.innerHTML = '<div class="loading">Loading...</div>';
+            document.getElementById('statusBadge').innerHTML = '';
+        }
+
+        function displayResult(data, title) {
+            const content = document.getElementById('resultContent');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            const status = data.status || 'unknown';
+            statusBadge.innerHTML = `<span class="status ${status}">${status}</span>`;
+            
+            content.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        function displayDetailedResult(data) {
+            const content = document.getElementById('resultContent');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            const status = data.status || 'unknown';
+            statusBadge.innerHTML = `<span class="status ${status}">${status}</span>`;
+            
+            let componentsHtml = '';
+            if (data.components) {
+                for (const [name, info] of Object.entries(data.components)) {
+                    componentsHtml += `
+                        <div class="component">
+                            <div class="component-name">
+                                ${name.toUpperCase()} 
+                                <span class="status ${info.status}">${info.status}</span>
+                            </div>
+                            <div class="component-message">${info.message}</div>
+                            ${info.missing ? `<div class="error">Missing: ${info.missing.join(', ')}</div>` : ''}
+                        </div>
+                    `;
+                }
+            }
+            
+            content.innerHTML = `
+                <h3>Detailed Health Check</h3>
+                <p style="color: #9ca3af; margin: 10px 0;">Timestamp: ${data.timestamp}</p>
+                <h4 style="margin-top: 20px;">Components:</h4>
+                ${componentsHtml}
+                <h4 style="margin-top: 20px;">Raw Response:</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        function displayError(message) {
+            const content = document.getElementById('resultContent');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            statusBadge.innerHTML = '<span class="status unhealthy">error</span>';
+            content.innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                    <br><br>
+                    Make sure the API is running at ${API_BASE}
+                </div>
+            `;
+        }
+
+        // Auto-check on load
+        window.onload = () => {
+            checkDetailedHealth();
+        };
+    </script>
+</body>
+</html>

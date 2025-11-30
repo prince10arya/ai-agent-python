@@ -28,13 +28,10 @@ services:
           path: backend/Dockerfile
         - action: restart
           path: backend/src/
-          # target: /app
     ports:
       - 8001:8000
     volumes:
       - ./backend/src:/app
-    depends_on:
-      - db_service
     env_file:
       - .env
 
@@ -44,13 +41,10 @@ services:
       - 5432:5432
     volumes:
       - dc_managed_db_volume:/var/lib/postgres/data
-    # env_file:
-    #   - .env
     environment:
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=db-password
       - POSTGRES_DB=mydb
-
 
 volumes:
   dc_managed_db_volume:
