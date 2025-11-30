@@ -1,0 +1,11 @@
+frontend/
+static/
+.env
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+docker-compose.yaml
+Dockerfile
+*.md
+health-check.html
