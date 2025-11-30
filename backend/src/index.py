@@ -1,12 +1,12 @@
-"""Vercel entry point for FastAPI application."""
-
 import sys
 from pathlib import Path
 
-# Add src directory to Python path
+# Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+# Import FastAPI app
 from main import app
+from mangum import Mangum
 
-# Vercel expects 'app' variable
-__all__ = ['app']
+# Vercel/Lambda handler
+handler = Mangum(app)
