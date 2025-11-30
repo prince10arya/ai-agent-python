@@ -10,6 +10,7 @@ WORKDIR /app
 COPY requirements.txt /tmp/requirements.txt
 
 ENV PATH=/opt/venv/bin:$PATH
+ENV PYTHONPATH=/app
 
 RUN pip install -r /tmp/requirements.txt
 
