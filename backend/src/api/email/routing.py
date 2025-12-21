@@ -12,10 +12,14 @@ from sqlmodel import Session, select
 from typing import List
 
 from .models import EmailRequest, EmailResponse, EmailHistory, EmailHistoryResponse
+from .bulk import BulkEmailRequest, ScheduledEmail, ScheduleEmailRequest, BulkEmailProgress
 from api.db import get_session
 from api.ai.services import generate_email_message
 from api.myemailer.sender import send_mail
 from pydantic import BaseModel
+from datetime import datetime
+import csv
+import io
 
 
 class SendDraftRequest(BaseModel):
@@ -67,8 +71,8 @@ def send_email(
         HTTPException: If email generation or sending fails
     """
     try:
-        # Generate email content using AI
-        email_data = generate_email_message(request.prompt)
+        # Generate email content using AI with specified tone
+        email_data = generate_email_message(request.prompt, request.tone)
         
         # Send the email via SMTP
         send_mail(
@@ -149,8 +153,8 @@ def draft_email(request: EmailRequest):
         HTTPException: If draft generation fails
     """
     try:
-        # Generate email content using AI
-        email_data = generate_email_message(request.prompt)
+        # Generate email content using AI with specified tone
+        email_data = generate_email_message(request.prompt, request.tone)
         return {
             "subject": email_data.subject,
             "content": email_data.content,
@@ -206,3 +210,87 @@ def send_edited_draft(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send draft: {str(e)}")
+
+
+@router.post("/bulk", tags=["Email"])
+def send_bulk_email(
+    request: BulkEmailRequest,
+    session: Session = Depends(get_session)
+):
+    """Send email to multiple recipients."""
+    results = {"total": len(request.recipients), "sent": 0, "failed": 0}
+    
+    for recipient in request.recipients:
+        try:
+            send_mail(
+                subject=request.subject,
+                content=request.content,
+                to_email=recipient
+            )
+            
+            email_record = EmailHistory(
+                recipient=recipient,
+                subject=request.subject,
+                content=request.content,
+                prompt=f"Bulk email - {request.tone} tone",
+                status="sent"
+            )
+            session.add(email_record)
+            results["sent"] += 1
+        except Exception as e:
+            email_record = EmailHistory(
+                recipient=recipient,
+                subject=request.subject,
+                content=str(e),
+                prompt=f"Bulk email - {request.tone} tone",
+                status="failed"
+            )
+            session.add(email_record)
+            results["failed"] += 1
+    
+    session.commit()
+    results["progress_percent"] = (results["sent"] / results["total"]) * 100
+    return results
+
+
+@router.post("/schedule", tags=["Email"])
+def schedule_email(
+    request: ScheduleEmailRequest,
+    session: Session = Depends(get_session)
+):
+    """Schedule an email for later."""
+    scheduled_time = datetime.fromisoformat(request.scheduled_time)
+    
+    scheduled_email = ScheduledEmail(
+        recipient=request.recipient,
+        subject=request.subject,
+        content=request.content,
+        scheduled_time=scheduled_time,
+        timezone=request.timezone,
+        status="pending"
+    )
+    session.add(scheduled_email)
+    session.commit()
+    session.refresh(scheduled_email)
+    return scheduled_email
+
+
+@router.get("/scheduled", tags=["Email"])
+def get_scheduled_emails(session: Session = Depends(get_session)):
+    """Get all scheduled emails."""
+    query = select(ScheduledEmail).where(ScheduledEmail.status == "pending")
+    return session.exec(query).all()
+
+
+@router.delete("/scheduled/{email_id}", tags=["Email"])
+def cancel_scheduled_email(
+    email_id: int,
+    session: Session = Depends(get_session)
+):
+    """Cancel a scheduled email."""
+    email = session.get(ScheduledEmail, email_id)
+    if not email:
+        raise HTTPException(status_code=404, detail="Scheduled email not found")
+    email.status = "cancelled"
+    session.commit()
+    return {"message": "Email cancelled"}

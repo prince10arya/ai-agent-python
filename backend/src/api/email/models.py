@@ -10,6 +10,7 @@ def get_utc_now():
 class EmailRequest(SQLModel):
     recipient: str = Field(description="Email address of the recipient")
     prompt: str = Field(description="User prompt for email generation")
+    tone: str = Field(default="professional", description="Email tone: professional, casual, friendly, formal")
 
 
 class EmailResponse(SQLModel):

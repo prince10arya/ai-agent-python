@@ -14,10 +14,37 @@ function App() {
   const [editedSubject, setEditedSubject] = useState('');
   const [editedContent, setEditedContent] = useState('');
   const [emailValid, setEmailValid] = useState(true);
+  const [tone, setTone] = useState('professional');
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [bulkRecipients, setBulkRecipients] = useState('');
+  const [showBulk, setShowBulk] = useState(false);
 
   useEffect(() => {
     fetchEmailHistory();
+    fetchTemplates();
   }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/templates/`);
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const handleTemplateSelect = (e) => {
+    const templateId = e.target.value;
+    setSelectedTemplate(templateId);
+    if (templateId) {
+      const template = templates.find(t => t.id === parseInt(templateId));
+      if (template) {
+        setPrompt(template.content);
+        setEditedSubject(template.subject);
+      }
+    }
+  };
 
   const fetchEmailHistory = async () => {
     try {
@@ -56,7 +83,8 @@ function App() {
     try {
       const response = await axios.post(`${API_BASE_URL}/emails/draft`, {
         recipient,
-        prompt
+        prompt,
+        tone
       });
       setDraft(response.data);
       setEditedSubject(response.data.subject);
@@ -88,7 +116,7 @@ function App() {
     try {
       const response = await axios.post(
         draft ? `${API_BASE_URL}/emails/send-draft` : `${API_BASE_URL}/emails/send`,
-        draft ? { recipient, subject: editedSubject, content: editedContent } : { recipient, prompt }
+        draft ? { recipient, subject: editedSubject, content: editedContent } : { recipient, prompt, tone }
       );
       showMessage(`Email sent successfully to ${response.data.recipient}!`, 'success');
       setRecipient('');
@@ -144,6 +172,36 @@ function App() {
           </div>
           
           <div className="form-group">
+            <label htmlFor="template">Template (Optional):</label>
+            <select
+              id="template"
+              value={selectedTemplate}
+              onChange={handleTemplateSelect}
+              style={{ padding: '10px 14px', background: '#0f1419', border: '1px solid #2d3748', borderRadius: '6px', fontSize: '14px', color: '#e6e8eb', width: '100%' }}
+            >
+              <option value="">-- Select Template --</option>
+              {templates.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="tone">Tone:</label>
+            <select
+              id="tone"
+              value={tone}
+              onChange={(e) => setTone(e.target.value)}
+              style={{ padding: '10px 14px', background: '#0f1419', border: '1px solid #2d3748', borderRadius: '6px', fontSize: '14px', color: '#e6e8eb', width: '100%' }}
+            >
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="friendly">Friendly</option>
+              <option value="formal">Formal</option>
+            </select>
+          </div>
+
+          <div className="form-group">
             <label htmlFor="prompt">Email Prompt:</label>
             <textarea
               id="prompt"
@@ -153,6 +211,31 @@ function App() {
               required
             />
           </div>
+
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={showBulk}
+                onChange={(e) => setShowBulk(e.target.checked)}
+                style={{ marginRight: '8px' }}
+              />
+              Send to multiple recipients
+            </label>
+          </div>
+
+          {showBulk && (
+            <div className="form-group">
+              <label htmlFor="bulkRecipients">Recipients (comma-separated):</label>
+              <textarea
+                id="bulkRecipients"
+                value={bulkRecipients}
+                onChange={(e) => setBulkRecipients(e.target.value)}
+                placeholder="email1@example.com, email2@example.com"
+                style={{ height: '80px' }}
+              />
+            </div>
+          )}
 
           <div className="button-group">
             <button 
