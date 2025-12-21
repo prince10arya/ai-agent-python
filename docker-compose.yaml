@@ -5,9 +5,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - 3000:3000
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
@@ -19,19 +16,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
-    develop:
-      watch:
-        - action: rebuild
-          path: backend/requirements.txt
-        - action: rebuild
-          path: backend/Dockerfile
-        - action: restart
-          path: backend/src/
     ports:
       - 8001:8000
-    volumes:
-      - ./backend/src:/app
     env_file:
       - .env
 
