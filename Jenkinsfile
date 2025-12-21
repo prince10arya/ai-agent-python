@@ -1,5 +1,9 @@
 pipeline {
-    agent { label 'docker' }
+    agent {
+        agent{
+            label 'ai-email-agent'
+        }
+    }
 
     stages {
         stage('Checkout') {
