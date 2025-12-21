@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        node {
-            label 'ai-emain-agent'
-        }
-    }
+    agent { label 'docker' }
 
     stages {
         stage('Checkout') {
