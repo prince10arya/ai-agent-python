@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        node{
-            label 'ai-email-agent'
-        }
-    }
+    agent any
 
     stages {
         stage('Checkout') {
