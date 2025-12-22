@@ -1,5 +1,5 @@
 import { useEmailStore } from '../store/useEmailStore';
-import { emailService, templateService } from '../services/api';
+import { emailService, templateService, ttsService } from '../services/api';
 
 export const useEmail = () => {
   const store = useEmailStore();
@@ -79,10 +79,48 @@ export const useEmail = () => {
     }
   };
 
+  const handleSpeak = async () => {
+    if (!store.draft) {
+      showMessage('Generate a draft first to hear it', 'error');
+      return;
+    }
+
+    store.setIsSpeaking(true);
+    try {
+      const textToSpeak = `Subject: ${store.editedSubject}. Content: ${store.editedContent}`;
+      
+      const response = await ttsService.speak({
+        text: textToSpeak,
+        voice: 'af_heart',
+        speed: 1.0
+      });
+
+      const audioBlob = new Blob([response.data], { type: 'audio/wav' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      audio.onended = () => {
+        store.setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      audio.onerror = () => {
+        store.setIsSpeaking(false);
+        showMessage('Error playing audio', 'error');
+      };
+      
+      await audio.play();
+    } catch (error) {
+      store.setIsSpeaking(false);
+      showMessage('TTS service unavailable: ' + (error.response?.data?.detail || error.message), 'error');
+    }
+  };
+
   return {
     fetchEmailHistory,
     fetchTemplates,
     handleDraft,
     handleSend,
+    handleSpeak,
   };
 };

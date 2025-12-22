@@ -5,7 +5,7 @@ import '../styles/EmailForm.css';
 
 const EmailForm = () => {
   const store = useEmailStore();
-  const { handleDraft, handleSend } = useEmail();
+  const { handleDraft, handleSend, handleSpeak } = useEmail();
 
   return (
     <div className="email-form">
@@ -84,6 +84,14 @@ const EmailForm = () => {
               onChange={(e) => store.setEditedContent(e.target.value)}
             />
           </div>
+          <button
+            type="button"
+            className="btn listen-btn"
+            onClick={handleSpeak}
+            disabled={store.isSpeaking}
+          >
+            {store.isSpeaking ? '🔊 Speaking...' : '🔊 Listen to Draft'}
+          </button>
         </div>
       )}
     </div>

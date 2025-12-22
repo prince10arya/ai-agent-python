@@ -12,3 +12,7 @@ export const emailService = {
 export const templateService = {
   getAll: () => axios.get(`${API_BASE_URL}/templates/`),
 };
+
+export const ttsService = {
+  speak: (data) => axios.post(`${API_BASE_URL}/tts/speak`, data, { responseType: 'blob' }),
+};

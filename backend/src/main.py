@@ -3,6 +3,7 @@ from api.chat.routing import router as chat_router
 from api.email.routing import router as email_router
 from api.health.routing import router as health_router
 from api.templates.routing import router as templates_router
+from api.tts.routing import router as tts_router
 from api.db import init_db
 
 from contextlib import asynccontextmanager
@@ -38,6 +39,7 @@ app.include_router(chat_router, prefix='/api/chats', tags=["Chat"])
 app.include_router(email_router, prefix='/api/emails', tags=["Email"])
 app.include_router(health_router, prefix='/api/health', tags=["Health"])
 app.include_router(templates_router, prefix='/api/templates', tags=["Templates"])
+app.include_router(tts_router, prefix='/api/tts', tags=["TTS"])
 
 @app.get('/', tags=["Health"])
 def read_index():

@@ -16,6 +16,7 @@ export const useEmailStore = create((set) => ({
   selectedTemplate: '',
   bulkRecipients: '',
   showBulk: false,
+  isSpeaking: false,
 
   setRecipient: (recipient) => set({ recipient }),
   setPrompt: (prompt) => set({ prompt }),
@@ -31,6 +32,7 @@ export const useEmailStore = create((set) => ({
   setSelectedTemplate: (selectedTemplate) => set({ selectedTemplate }),
   setBulkRecipients: (bulkRecipients) => set({ bulkRecipients }),
   setShowBulk: (showBulk) => set({ showBulk }),
+  setIsSpeaking: (isSpeaking) => set({ isSpeaking }),
   
   clearMessage: () => set({ message: '', messageType: '' }),
   resetForm: () => set({ recipient: '', prompt: '', draft: null }),
