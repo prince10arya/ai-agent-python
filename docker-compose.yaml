@@ -17,9 +17,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - 8001:8000
+      - 8001:8002
     env_file:
       - .env
+    depends_on:
+      - db_service
 
   db_service:
     image: postgres:17.5

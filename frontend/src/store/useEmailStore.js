@@ -1,0 +1,37 @@
+import { create } from 'zustand';
+
+export const useEmailStore = create((set) => ({
+  recipient: '',
+  prompt: '',
+  loading: false,
+  message: '',
+  messageType: '',
+  emailHistory: [],
+  draft: null,
+  editedSubject: '',
+  editedContent: '',
+  emailValid: true,
+  tone: 'professional',
+  templates: [],
+  selectedTemplate: '',
+  bulkRecipients: '',
+  showBulk: false,
+
+  setRecipient: (recipient) => set({ recipient }),
+  setPrompt: (prompt) => set({ prompt }),
+  setLoading: (loading) => set({ loading }),
+  setMessage: (message, messageType) => set({ message, messageType }),
+  setEmailHistory: (emailHistory) => set({ emailHistory }),
+  setDraft: (draft) => set({ draft }),
+  setEditedSubject: (editedSubject) => set({ editedSubject }),
+  setEditedContent: (editedContent) => set({ editedContent }),
+  setEmailValid: (emailValid) => set({ emailValid }),
+  setTone: (tone) => set({ tone }),
+  setTemplates: (templates) => set({ templates }),
+  setSelectedTemplate: (selectedTemplate) => set({ selectedTemplate }),
+  setBulkRecipients: (bulkRecipients) => set({ bulkRecipients }),
+  setShowBulk: (showBulk) => set({ showBulk }),
+  
+  clearMessage: () => set({ message: '', messageType: '' }),
+  resetForm: () => set({ recipient: '', prompt: '', draft: null }),
+}));

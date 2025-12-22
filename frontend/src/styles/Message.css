@@ -1,0 +1,33 @@
+.message {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  animation: slideInRight 0.3s ease;
+  max-width: 400px;
+}
+
+.message-success {
+  background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  color: #065f46;
+}
+
+.message-error {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: #7f1d1d;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
