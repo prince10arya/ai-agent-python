@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEmailStore } from '../store/useEmailStore';
 import { useEmail } from '../hooks/useEmail';
+import { validateEmail } from '../utils/validation';
 import '../styles/EmailForm.css';
 
 const EmailForm = () => {
@@ -19,7 +20,7 @@ const EmailForm = () => {
             value={store.recipient}
             onChange={(e) => {
               store.setRecipient(e.target.value);
-              store.setEmailValid(!e.target.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value));
+              store.setEmailValid(!e.target.value || validateEmail(e.target.value));
             }}
             placeholder="Enter recipient email address"
             required

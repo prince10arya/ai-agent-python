@@ -1,39 +1,41 @@
 import { useEmailStore } from '../store/useEmailStore';
 import { emailService, templateService, ttsService } from '../services/api';
+import { validateEmail } from '../utils/validation';
+import { useCallback } from 'react';
 
 export const useEmail = () => {
   const store = useEmailStore();
 
-  const showMessage = (text, type) => {
+  const showMessage = useCallback((text, type) => {
     store.setMessage(text, type);
     setTimeout(() => store.clearMessage(), 5000);
-  };
+  }, [store]);
 
-  const fetchEmailHistory = async () => {
+  const fetchEmailHistory = useCallback(async () => {
     try {
       const response = await emailService.getHistory();
       store.setEmailHistory(response.data);
     } catch (error) {
       console.error('Error fetching email history:', error);
     }
-  };
+  }, [store]);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const response = await templateService.getAll();
       store.setTemplates(response.data);
     } catch (error) {
       console.error('Error fetching templates:', error);
     }
-  };
+  }, [store]);
 
-  const handleDraft = async (e) => {
+  const handleDraft = useCallback(async (e) => {
     e.preventDefault();
     if (!store.recipient.trim() || !store.prompt.trim()) {
       showMessage('Please fill in both recipient and prompt fields', 'error');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(store.recipient)) {
+    if (!validateEmail(store.recipient)) {
       showMessage('Please enter a valid email address', 'error');
       return;
     }
@@ -54,9 +56,9 @@ export const useEmail = () => {
     } finally {
       store.setLoading(false);
     }
-  };
+  }, [store, showMessage]);
 
-  const handleSend = async (e) => {
+  const handleSend = useCallback(async (e) => {
     e.preventDefault();
     if (!store.recipient.trim() || (!store.prompt.trim() && !store.draft)) {
       showMessage('Please fill in both recipient and prompt fields', 'error');
@@ -77,9 +79,9 @@ export const useEmail = () => {
     } finally {
       store.setLoading(false);
     }
-  };
+  }, [store, showMessage, fetchEmailHistory]);
 
-  const handleSpeak = async () => {
+  const handleSpeak = useCallback(async () => {
     if (!store.draft) {
       showMessage('Generate a draft first to hear it', 'error');
       return;
@@ -114,7 +116,7 @@ export const useEmail = () => {
       store.setIsSpeaking(false);
       showMessage('TTS service unavailable: ' + (error.response?.data?.detail || error.message), 'error');
     }
-  };
+  }, [store, showMessage]);
 
   return {
     fetchEmailHistory,
