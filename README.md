@@ -2,6 +2,10 @@
 
 An AI-powered email drafting and sending application with a React frontend and FastAPI backend.
 
+## UI
+https://github.com/prince10arya/ai-agent-python/blob/main/assets/Screenshot%20(16).png
+
+
 ## Features
 
 - 🤖 AI-powered email generation using Groq/LLaMA
